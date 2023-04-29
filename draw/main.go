@@ -9,17 +9,16 @@ import (
 	"image/color"
 	"io/ioutil"
 	"net/http"
-	"runtime"
 	"strconv"
-	"sync"
+	"time"
 )
 
 var url string
 var imagePath string
 
 func init() {
-	flag.StringVar(&url, "method", "", "指定调用同步/异步接口")
-	flag.StringVar(&url, "image", "./images/src1.jpg", "指定绘制标号的图像路径")
+	flag.StringVar(&url, "method", "concurrent", "指定调用同步/异步接口")
+	flag.StringVar(&imagePath, "image", "./images/src1.jpg", "指定绘制标号的图像路径")
 	flag.Parse()
 	url = "http://localhost:6060/template-match-" + url
 }
@@ -35,13 +34,11 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-
 	defer resp.Body.Close()
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
 		panic(err)
 	}
-	fmt.Println(string(body))
 	var data Response
 	err = json.Unmarshal(body, &data)
 	if err != nil {
@@ -56,22 +53,11 @@ func main() {
 		gocv.Circle(&srcImage, point, 50, color.RGBA{255, 255, 255, 0}, 2)
 		gocv.PutText(&srcImage, strconv.Itoa(i+1), point, gocv.FontHersheyPlain, 4.0, color.RGBA{255, 255, 255, 0}, 2)
 	}
-	var wg sync.WaitGroup
-	wg.Add(1)
-	go func(srcImage gocv.Mat) {
-		runtime.LockOSThread()
-		window := gocv.NewWindow("match-result")
-		window.IMShow(srcImage)
-		gocv.WaitKey(0)
-		runtime.UnlockOSThread()
-		wg.Done()
-	}(srcImage)
-	wg.Wait()
-	fmt.Println(data.Data, data.Msg)
-}
-
-func draw(srcImage gocv.Mat) {
-	window := gocv.NewWindow("match-result")
-	window.IMShow(srcImage)
-	gocv.WaitKey(0)
+	if srcImage.Empty() {
+		fmt.Printf("无法读取图像：%s\n", "image.jpg")
+		return
+	}
+	now := time.Now()
+	timeStr := now.Format("2006-01-02 15:04:05")
+	gocv.IMWrite("./draw/result/"+timeStr+".jpg", srcImage)
 }
