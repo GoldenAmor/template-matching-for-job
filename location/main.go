@@ -16,7 +16,7 @@ var url string
 func init() {
 	flag.IntVar(&locationX, "x", 0, "指定坐标的x轴坐标")
 	flag.IntVar(&locationY, "y", 0, "指定坐标的y轴坐标")
-	flag.StringVar(&url, "method", "", "指定调用同步/异步接口")
+	flag.StringVar(&url, "method", "concurrent", "指定调用同步/异步接口")
 	flag.Parse()
 	url = "http://localhost:6060/template-match-" + url
 }
@@ -28,7 +28,7 @@ type Response struct {
 }
 
 func main() {
-	resp, err := http.Get("http://localhost:6060/template-match-concurrent")
+	resp, err := http.Get(url)
 	if err != nil {
 		panic(err)
 	}
