@@ -24,6 +24,15 @@ a simple demo of template-matching for my future job
 
 ```
 
+
+## 在开始之前。。。
+项目在mac平台使用gocv库实现简易的模板匹配应用
+
+请在设备上先完成opencv与gocv库相关的配置
+
+gocv官方配置文档 https://gocv.io/getting-started/
+
+
 ## 模板匹配
 接口文档：http://10.161.155.209:10393/shareDoc?issue=0aa4970f87886d705f48a3120fe058b4&target_id=2369afec-4ed9-4abe-9180-6ac1e0ba368c
 
