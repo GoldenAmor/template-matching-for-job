@@ -16,18 +16,22 @@ import (
 
 var url string
 var imagePath string
+var savePath string
+var configPath string
 
 func init() {
 	flag.StringVar(&url, "method", "concurrent", "指定调用同步/异步接口")
+	flag.StringVar(&configPath, "config", "./match/conf/conf.ini", "指定配置文件的路径")
 	flag.Parse()
 	url = "http://localhost:6060/template-match-" + url
-	cfg, err := ini.Load("./match/conf/conf.ini")
+	cfg, err := ini.Load(configPath)
 	if err != nil {
 		fmt.Printf("无法加载配置文件: %v\n", err)
 		return
 	}
 	iniSection := cfg.Section("image")
 	imagePath = iniSection.Key("src").String()
+	savePath = iniSection.Key("save").String()
 }
 
 type Response struct {
@@ -66,5 +70,5 @@ func main() {
 	}
 	now := time.Now()
 	timeStr := now.Format("2006-01-02 15:04:05")
-	gocv.IMWrite("./draw/result/"+timeStr+".jpg", srcImage)
+	gocv.IMWrite(savePath+timeStr+".jpg", srcImage)
 }
