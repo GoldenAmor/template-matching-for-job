@@ -16,7 +16,7 @@ var srcPath string
 var tmplPath string
 
 func init() {
-	cfg, err := ini.Load("./match/conf/conf.ini")
+	cfg, err := ini.Load("../conf/conf.ini")
 	if err != nil {
 		fmt.Printf("无法加载配置文件: %v\n", err)
 		return
