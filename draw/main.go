@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"flag"
 	"fmt"
+	"github.com/go-ini/ini"
 	"gocv.io/x/gocv"
 	"image"
 	"image/color"
@@ -18,9 +19,15 @@ var imagePath string
 
 func init() {
 	flag.StringVar(&url, "method", "concurrent", "指定调用同步/异步接口")
-	flag.StringVar(&imagePath, "image", "./images/src1.jpg", "指定绘制标号的图像路径")
 	flag.Parse()
 	url = "http://localhost:6060/template-match-" + url
+	cfg, err := ini.Load("./match/conf/conf.ini")
+	if err != nil {
+		fmt.Printf("无法加载配置文件: %v\n", err)
+		return
+	}
+	iniSection := cfg.Section("image")
+	imagePath = iniSection.Key("src").String()
 }
 
 type Response struct {

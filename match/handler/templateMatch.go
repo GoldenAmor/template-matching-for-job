@@ -1,10 +1,12 @@
 package handler
 
 import (
-	"flag"
+	"fmt"
 	"github.com/gin-gonic/gin"
+	"github.com/go-ini/ini"
 	"gocv.io/x/gocv"
 	"image"
+	"net/http"
 	"sort"
 	"sync"
 	"time"
@@ -14,14 +16,25 @@ var srcPath string
 var tmplPath string
 
 func init() {
-	flag.StringVar(&srcPath, "src", "./images/src1.jpg", "指定源图像的路径")
-	flag.StringVar(&tmplPath, "tmpl", "./images/aim.png", "指定模板图像的路径")
-	flag.Parse()
+	cfg, err := ini.Load("./match/conf/conf.ini")
+	if err != nil {
+		fmt.Printf("无法加载配置文件: %v\n", err)
+		return
+	}
+	iniSection := cfg.Section("image")
+	srcPath = iniSection.Key("src").String()
+	tmplPath = iniSection.Key("tmpl").String()
 }
 
 func TemplateMatchSerial(c *gin.Context) {
 	srcImage := gocv.IMRead(srcPath, gocv.IMReadColor)
 	tmpl := gocv.IMRead(tmplPath, gocv.IMReadColor)
+	if tmpl.Rows() > srcImage.Rows() || tmpl.Cols() > srcImage.Cols() {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"msg": "模板图片大于原图片！请重新配置参数并运行服务!",
+		})
+		return
+	}
 	srcImageGray := gocv.NewMat()
 	tmplGray := gocv.NewMat()
 	gocv.CvtColor(srcImage, &srcImageGray, gocv.ColorBGRToGray)
@@ -53,6 +66,12 @@ func TemplateMatchSerial(c *gin.Context) {
 func TemplateMatchConcurrent(c *gin.Context) {
 	srcImage := gocv.IMRead(srcPath, gocv.IMReadColor)
 	tmpl := gocv.IMRead(tmplPath, gocv.IMReadColor)
+	if tmpl.Rows() > srcImage.Rows() || tmpl.Cols() > srcImage.Cols() {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"msg": "模板图片大于原图片！请重新配置参数并运行服务!",
+		})
+		return
+	}
 	srcImageGray := gocv.NewMat()
 	tmplGray := gocv.NewMat()
 	gocv.CvtColor(srcImage, &srcImageGray, gocv.ColorBGRToGray)
