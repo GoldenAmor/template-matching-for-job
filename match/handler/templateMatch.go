@@ -1,17 +1,27 @@
 package handler
 
 import (
-	"fmt"
+	"flag"
 	"github.com/gin-gonic/gin"
 	"gocv.io/x/gocv"
 	"image"
+	"sort"
 	"sync"
 	"time"
 )
 
+var srcPath string
+var tmplPath string
+
+func init() {
+	flag.StringVar(&srcPath, "src", "./images/src1.jpg", "指定源图像的路径")
+	flag.StringVar(&tmplPath, "tmpl", "./images/aim.png", "指定模板图像的路径")
+	flag.Parse()
+}
+
 func TemplateMatchSerial(c *gin.Context) {
-	srcImage := gocv.IMRead("./images/src1.jpg", gocv.IMReadColor)
-	tmpl := gocv.IMRead("./images/aim.png", gocv.IMReadColor)
+	srcImage := gocv.IMRead(srcPath, gocv.IMReadColor)
+	tmpl := gocv.IMRead(tmplPath, gocv.IMReadColor)
 	srcImageGray := gocv.NewMat()
 	tmplGray := gocv.NewMat()
 	gocv.CvtColor(srcImage, &srcImageGray, gocv.ColorBGRToGray)
@@ -31,6 +41,9 @@ func TemplateMatchSerial(c *gin.Context) {
 	result = append(result, result90...)
 	result = append(result, result180...)
 	result = append(result, result270...)
+	sort.Slice(result, func(i, j int) bool {
+		return result[i].Min.Y < result[j].Min.Y || (result[i].Min.Y == result[j].Min.Y && result[i].Min.X < result[j].Min.X)
+	})
 	c.JSON(200, gin.H{
 		"data": result,
 		"msg":  "successfully matched",
@@ -38,8 +51,8 @@ func TemplateMatchSerial(c *gin.Context) {
 }
 
 func TemplateMatchConcurrent(c *gin.Context) {
-	srcImage := gocv.IMRead("./images/src1.jpg", gocv.IMReadColor)
-	tmpl := gocv.IMRead("./images/aim.png", gocv.IMReadColor)
+	srcImage := gocv.IMRead(srcPath, gocv.IMReadColor)
+	tmpl := gocv.IMRead(tmplPath, gocv.IMReadColor)
 	srcImageGray := gocv.NewMat()
 	tmplGray := gocv.NewMat()
 	gocv.CvtColor(srcImage, &srcImageGray, gocv.ColorBGRToGray)
@@ -80,6 +93,9 @@ loop:
 
 	wg.Wait()
 	close(rectChan)
+	sort.Slice(result, func(i, j int) bool {
+		return result[i].Min.Y < result[j].Min.Y || (result[i].Min.Y == result[j].Min.Y && result[i].Min.X < result[j].Min.X)
+	})
 	c.JSON(200, gin.H{
 		"data": result,
 		"msg":  "successfully matched",
@@ -91,7 +107,6 @@ func matchLogic(srcImage, tmpl gocv.Mat, method gocv.TemplateMatchMode) (ret []i
 	for {
 		gocv.MatchTemplate(srcImage, tmpl, &result, method, gocv.NewMat())
 		minVal, _, minLoc, _ := gocv.MinMaxLoc(result)
-		fmt.Println(minVal)
 		if minVal > 500000 {
 			return
 		}
@@ -99,7 +114,6 @@ func matchLogic(srcImage, tmpl gocv.Mat, method gocv.TemplateMatchMode) (ret []i
 			Min: minLoc,
 			Max: image.Point{X: minLoc.X + tmpl.Cols(), Y: minLoc.Y + tmpl.Rows()},
 		}
-		//gocv.Rectangle(output, r, color.RGBA{R: 255}, 10)
 		region := srcImage.Region(r)
 		region.SetTo(gocv.NewScalar(255, 0, 0, 0))
 		srcImage.SetDoubleAt(minLoc.X, minLoc.Y, 0)
