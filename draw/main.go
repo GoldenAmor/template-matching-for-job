@@ -21,7 +21,7 @@ var configPath string
 
 func init() {
 	flag.StringVar(&url, "method", "concurrent", "指定调用同步/异步接口")
-	flag.StringVar(&configPath, "config", "./match/conf/conf.ini", "指定配置文件的路径")
+	flag.StringVar(&configPath, "config", "./conf/conf.ini", "指定配置文件的路径")
 	flag.Parse()
 	url = "http://localhost:6060/template-match-" + url
 	cfg, err := ini.Load(configPath)
