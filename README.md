@@ -36,15 +36,15 @@ gocv官方配置文档 https://gocv.io/getting-started/
 ## 模板匹配
 接口文档：http://10.161.155.209:10393/shareDoc?issue=0aa4970f87886d705f48a3120fe058b4&target_id=2369afec-4ed9-4abe-9180-6ac1e0ba368c
 
-执行以下命令，启动http服务：
+执行以下命令(config参数可选，默认为../conf/conf.ini)，启动http服务：
 ```
 cd ./match
-go run *.go
+go run *.go -config=../conf/conf.ini
 ```
 
 ## 绘制标号
 该功能会读取conf包中的配置文件，绘制图像后保存至draw/result目录下
-执行以下命令运行代码
+执行以下命令(config参数可选，默认为../conf/conf.ini)运行代码
 ```
 cd ./draw
 go run main.go -config=../conf/conf.ini
@@ -54,6 +54,8 @@ go run main.go -config=../conf/conf.ini
 ```
 go run main.go -config=../conf/conf.ini -method=serial
 ```
+### 结果展示
+![Image text](https://user-images.githubusercontent.com/89122882/235345616-5cfc54b6-b9ba-471d-b0be-1e810de4cd09.jpg)
 
 ## 判断坐标
 执行以下命令运行代码
@@ -70,5 +72,3 @@ go run main.go -x 500 -y 500 -method=serial
 如果您不是使用命令行运行代码，例如Goland，请注意修改相关路径
 
 例如将conf.ini文件中的save字段由./result/更改为./draw/result/
-
-同理，还需要修改handler读取配置文件的路径（被我写死了 match/handler/templateMatch.go文件的第19行）
